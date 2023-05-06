@@ -4,11 +4,11 @@ let listaMovEgreso = []
 
 let form = document.querySelector('#formulario');
 form.addEventListener('submit', (e) => {
-    agegarData(e)
+    obtenerData(e)
     form.reset()
 });
 
-function agegarData(e){
+function obtenerData(e){
     e.preventDefault();
 
     let data = Object.fromEntries(new FormData(e.target))
@@ -24,14 +24,86 @@ function agegarData(e){
     listaMov.push(data);
 
     localStorage.setItem("listaMov", JSON.stringify(listaMov));
+    mostrarData()
 
-    // movimientos(data);
-    // saldoDisponibles(listaMovIngreso, listaMovEgreso);
+    saldoDisponible();
+    
 }
 
 function mostrarData(){
 
-    let listaMov;
+    let tbodyIngresos = document.querySelector("#tbodyIngresos")
+    let tbodyEgresos = document.querySelector("#tbodyEgresos")
+    let html="";
+
+    if(localStorage.getItem("listaMov") == null){
+        listaMov = [];
+    }
+
+    else  {
+        listaMov = JSON.parse(localStorage.getItem("listaMov"));
+    }
+
+    tbodyIngresos.innerHTML = "";
+    tbodyEgresos.innerHTML = "";
+
+    listaMov.forEach((element,index) => {
+
+        if(element.movimiento === 'ingreso'){
+
+            let tr = document.createElement("tr");
+            tr.innerHTML = `
+            <td> ${element.movimiento}</td>
+            <td> ${element.decripcion}</td>
+            <td> ${element.valor}</td>
+            <td><button onclick="eliminarData(${index})" class="btn btn-danger">Eliminar</buttom></td>
+            `
+            tbodyIngresos.appendChild(tr)
+        }
+    
+        else if(element.movimiento === 'egreso'){
+
+
+            let tr = document.createElement("tr");
+            tr.innerHTML = `
+            <td> ${element.movimiento}</td>
+            <td> ${element.decripcion}</td>
+            <td> ${element.valor}</td>
+            <td><button onclick="eliminarData(${index})" class="btn btn-danger">Eliminar</buttom></td>
+            `
+            tbodyEgresos.appendChild(tr)
+        }
+    });
+}
+
+function eliminarData(index) {
+    if(localStorage.getItem("listaMov") == null){
+        listaMov = [];
+    }
+
+    else  {
+        listaMov = JSON.parse(localStorage.getItem("listaMov"));
+    }
+
+    listaMov.splice(index, 1);
+    localStorage.setItem("listaMov", JSON.stringify(listaMov));
+    mostrarData();
+    saldoDisponible();
+}
+
+function saldoDisponible(){
+    let saldoDis = document.querySelector("#saldoDis")
+    let saldoIng = document.querySelector("#saldoIng");
+    let saldoEgre = document.querySelector("#saldoEgre");
+
+    let valorIng = 0
+    let valorEgre = 0
+    let vTotal = 0
+    let listPorcentIng = [];
+    let listPorcentEgre = [];
+    let porcent = 0;
+
+
 
     if(localStorage.getItem("listaMov") == null){
         listaMov = [];
@@ -42,45 +114,46 @@ function mostrarData(){
     }
 
 
-        if(listaMov.movimiento === 'ingreso'){
-            listaMovIngreso.push(listaMov)
+    listaMov.forEach((element) =>{
 
-            listaMovIngreso.forEach((element) =>{
-            html += "<tr>";
-            html += "<td>" + element.movimiento + "</td>";
-            html += "<td>" + element.decripcion + "</td>";
-            html += "<td>" + element.valor + "</td>";
+        if(element.movimiento === 'ingreso'){
 
-           html += '<td><button class="btn btn-danger">Eliminar</button></td>';
+            valorIng += parseFloat(element.valor);
 
-           html += "</tr>";
+            listPorcentIng.push(element.valor)
+            
+            listPorcentIng.forEach((element)=>{
+                porcent = (element/valorIng)*100;
+                console.log(porcent);
+                
+            })
 
-           document.querySelector("#tablaIngresos tbody").innerHTML = html;
+        }
+
+        else if(element.movimiento === 'egreso'){
+
+            valorEgre += parseFloat(element.valor)
+
+            listPorcentEgre.push(element.valor)
+            
+            listPorcentEgre.forEach((element)=>{
+
+                porcent = (element/valorIng)*100;
+                console.log(porcent);
             })
         }
 
-        else if(data.movimiento === 'egreso'){
-            listaMovEgreso.push(listaMov)
+    })
 
-            listaMovEgreso.forEach((element) => {
-                html += "<tr>";
-                html += "<td>" + element.movimiento + "</td>";
-                html += "<td>" + element.decripcion + "</td>";
-                html += "<td>" + element.valor + "</td>";
-    
-               html += '<td><button class="btn btn-danger">Eliminar</button></td>';
-    
-               html += "</tr>";
-    
-               document.querySelector("#tablaEgresoss tbody").innerHTML = html;  
-            })
-        }
+    vTotal = valorIng - valorEgre
+    saldoDis.innerHTML = vTotal
+    saldoIng.innerHTML = valorIng 
+    saldoEgre.innerHTML = valorEgre
 
-        return listaMovEgreso,listaMovIngreso
+
+    console.log(listaMov);
+
+    localStorage.setItem("listaMov", JSON.stringify(listaMov));
+    mostrarData()
+
 }
-
-// function saldoDisponible(){}
-
-
-
-
